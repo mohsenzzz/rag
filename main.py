@@ -17,7 +17,7 @@ chunks=splitter.split_documents(documents=documents)
 embeddings = OpenAIEmbeddings(
     model="nvidia/nemotron-3-embed-1b:free",
     base_url="https://openrouter.ai/api/v1",
-    api_key="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",
+    api_key="xxx",
     check_embedding_ctx_length=False,
 )
 # embeddings = HuggingFaceEmbeddings(
