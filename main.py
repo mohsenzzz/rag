@@ -1,4 +1,6 @@
 
+import os
+
 from langchain_openai import OpenAIEmbeddings
 
 from file_manager import ReadFile
@@ -17,7 +19,7 @@ chunks=splitter.split_documents(documents=documents)
 embeddings = OpenAIEmbeddings(
     model="nvidia/nemotron-3-embed-1b:free",
     base_url="https://openrouter.ai/api/v1",
-    api_key="xxx",
+    api_key=os.environ("API_KEY"),
     check_embedding_ctx_length=False,
 )
 # embeddings = HuggingFaceEmbeddings(
