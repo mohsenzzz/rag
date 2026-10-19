@@ -2,9 +2,10 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-from langchain_openai import OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings,ChatOpenAI
 from langchain_community.document_loaders import PyPDFLoader
 
+from langchain_core.prompts import PromptTemplate
 from file_manager import ReadFile
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -56,7 +57,57 @@ else:
 vector_store.as_retriever()
 data = vector_store._collection.get()
 
+prompt = PromptTemplate(
+    template="""
+    You are a helpful assistant answering questions based on the provided context.
+    
+    Rules:
+    - Answer the question using only provided context.
+    - If answer is not in the context, say o don't know.
+    - Do not invent facts.
+    - Give a clear and concise answer.
+    
+    Context:
+        {context}
+    
+    Question:
+    {question}
+    
+    Answer:
+    """,
+    input_variables=['context','question']
+    
+)
 
+retriever= vector_store.as_retriever(
+    search_kwargs={'k':3}
+)
+
+question = "این داکیومنت درباره چیست؟"
+
+# Retrieve relevant chunks
+docs = retriever.invoke(question)
+
+# Combine the chunks into a single context string
+context = "\n\n".join(
+    doc.page_content for doc in docs
+)
+
+# Fill the prompt variables
+formatted_prompt = prompt.invoke({
+    "context": context,
+    "question": question,
+})
+
+llm = ChatOpenAI(
+    model="nvidia/nemotron-3-ultra-550b-a55b:free",
+    base_url="https://openrouter.ai/api/v1",
+    api_key=os.environ["API_KEY"],
+)
+
+response = llm.invoke(formatted_prompt.to_string())
+
+print(response.content)
 # embeddings = HuggingFaceEmbeddings(
 #     model="Qwen/Qwen3-Embedding-0.6B",
 
